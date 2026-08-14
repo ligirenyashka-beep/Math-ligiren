@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Мастерская частей — часть от целого и целое по части</title>
+<style>
+  :root{
+    --bg:#f6f8fc;
+    --card:#ffffff;
+    --ink:#24344d;
+    --blue:#4f7cff;
+    --blue-dark:#3b5fe0;
+    --green:#34c98d;
+    --green-dark:#239c6c;
+    --yellow:#ffd166;
+    --red:#ff6b6b;
+    --grey:#8b94a9;
+    --shadow:0 10px 24px rgba(36,52,77,.10);
+    --radius:20px;
+  }
+
+  *{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+    font-family:"Segoe UI", Arial, sans-serif;
+  }
+
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    min-height:100vh;
+  }
+
+  .app{
+    max-width:900px;
+    margin:0 auto;
+    padding:24px 16px 60px;
+  }
+
+  header{
+    text-align:center;
+    margin-bottom:22px;
+  }
+
+  header h1{
+    font-size:1.6rem;
+    margin-bottom:6px;
+  }
+
+  header p{
+    color:var(--grey);
+  }
+
+  .screen{
+    display:none;
+    animation:fade .3s ease;
+  }
+
+  .screen.active{
+    display:block;
+  }
+
+  @keyframes fade{
+    from{opacity:0; transform:translateY(8px);}
+    to{opacity:1; transform:none;}
+  }
+
+  .level-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));
+    gap:18px;
+  }
+
+  .level-card{
+    background:var(--card);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding:26px 20px;
+    text-align:center;
+    cursor:pointer;
+    border:3px solid transparent;
+    transition:.18s;
+  }
+
+  .level-card:hover{
+    transform:translateY(-4px);
+    border-color:var(--blue);
+  }
+
+  .level-card .emoji{
+    font-size:2.5rem;
+  }
+
+  .level-card h3{
+    margin:10px 0 8px;
+  }
+
+  .level-card p{
+    color:var(--grey);
+    font-size:.95rem;
+  }
+
+  .stars{
+    margin-top:10px;
+    color:#f4b400;
+    letter-spacing:2px;
+  }
+
+  .topbar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:12px;
+    margin-bottom:14px;
+  }
+
+  .btn-back{
+    background:none;
+    border:none;
+    color:var(--blue);
+    font-weight:700;
+    font-size:1rem;
+    cursor:pointer;
+  }
+
+  .progress{
+    color:var(--grey);
+    font-size:.95rem;
+  }
+
+  .task-card{
+    background:var(--card);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding:26px;
+  }
+
+  .question{
+    font-size:1.25rem;
+    font-weight:700;
+    text-align:center;
+    margin-bottom:18px;
+    line-height:1.45;
+  }
+
+  .caption{
+    text-align:center;
+    color:var(--grey);
+    margin-bottom:10px;
+    font-size:1.05rem;
+  }
+
+  .bar{
+    display:flex;
+    gap:6px;
+    max-width:620px;
+    margin:0 auto 18px;
+  }
+
+  .segment{
+    flex:1;
+    min-height:74px;
+    border:3px solid #24344d;
+    border-radius:14px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:1.2rem;
+    font-weight:800;
+    background:#fff;
+    transition:.2s;
+  }
+
+  .segment.hl{
+    background:#e3edff;
+    border-color:var(--blue);
+  }
+
+  .segment.hl-known{
+    background:#fff3d6;
+    border-color:#f0b400;
+  }
+
+  .answer-row{
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:center;
+    align-items:center;
+    gap:12px;
+    margin-top:20px;
+  }
+
+  .answer-row label{
+    font-size:1.25rem;
+    font-weight:800;
+  }
+
+  .answer-row input{
+    width:130px;
+    padding:12px;
+    font-size:1.4rem;
+    text-align:center;
+    border:3px solid #d8e1f5;
+    border-radius:14px;
+    outline:none;
+  }
+
+  .answer-row input:focus{
+    border-color:var(--blue);
+  }
+
+  .btn{
+    border:none;
+    border-radius:14px;
+    padding:12px 18px;
+    font-size:1rem;
+    font-weight:800;
+    cursor:pointer;
+    transition:.15s;
+  }
+
+  .btn.blue{
+    background:var(--blue);
+    color:#fff;
+  }
+
+  .btn.blue:hover{
+    background:var(--blue-dark);
+  }
+
+  .btn.green{
+    background:var(--green);
+    color:#fff;
+  }
+
+  .btn.green:hover{
+    background:var(--green-dark);
+  }
+
+  .btn.ghost{
+    background:#eef3ff;
+    color:var(--blue);
+  }
+
+  .feedback{
+    min-height:28px;
+    text-align:center;
+    margin-top:16px;
+    font-weight:700;
+  }
+
+  .feedback.ok{
+    color:var(--green-dark);
+  }
+
+  .feedback.err{
+    color:var(--red);
+  }
+
+  .hint-bubble{
+    display:none;
+    margin-top:14px;
+    background:#fff8e6;
+    border:1px dashed #f0c24b;
+    border-radius:14px;
+    padding:14px 16px;
+    line-height:1.5;
+  }
+
+  .hint-bubble.show{
+    display:block;
+    animation:fade .25s ease;
+  }
+
+  .next-row{
+    display:none;
+    justify-content:center;
+    margin-top:18px;
+  }
+
+  .footer-note{
+    margin-top:28px;
+    text-align:center;
+    color:var(--grey);
+    font-size:.88rem;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <h1>🧩 Мастерская частей</h1>
+    <p>Часть от целого и целое по части. Выбери уровень и работай в своём темпе.</p>
+  </header>
+
+  <!-- MENU -->
+  <div class="screen active" id="menu">
+    <div class="level-grid">
+
+      <div class="level-card" onclick="startLevel(1)">
+        <div class="emoji">🌱</div>
+        <h3>Уровень 1</h3>
+        <p>Целое разделили на равные части. Найди одну часть.</p>
+        <div class="stars" id="stars1"></div>
+      </div>
+
+      <div class="level-card" onclick="startLevel(2)">
+        <div class="emoji">🍕</div>
+        <h3>Уровень 2</h3>
+        <p>Часть от целого: найди, сколько составляет дробь от числа.</p>
+        <div class="stars" id="stars2"></div>
+      </div>
+
+      <div class="level-card" onclick="startLevel(3)">
+        <div class="emoji">🕵️</div>
+        <h3>Уровень 3</h3>
+        <p>Целое по части: известна часть, найди всё целое.</p>
+        <div class="stars" id="stars3"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- GAME -->
+  <div class="screen" id="game">
+    <div class="topbar">
+      <button class="btn-back" onclick="goMenu()">← Назад к уровням</button>
+      <div class="progress">
+        Задача <span id="taskNum">1</span> из <span id="taskTotal">4</span>
+      </div>
+    </div>
+
+    <div class="task-card">
+      <div class="question" id="question"></div>
+
+      <div class="caption" id="caption"></div>
+      <div class="bar" id="bar"></div>
+
+      <div class="answer-row">
+        <label>Ответ:</label>
+        <input type="number" id="answerInput" placeholder="?">
+        <button class="btn green" onclick="checkAnswer()">Проверить ✅</button>
+        <button class="btn ghost" onclick="showHint()">Подсказка 💡</button>
+      </div>
+
+      <div class="feedback" id="feedback"></div>
+      <div class="hint-bubble" id="hintBubble"></div>
+
+      <div class="next-row" id="nextRow">
+        <button class="btn blue" onclick="nextTask()">Следующая задача →</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-note">
+    Ошибка — это не страшно. Это просто повод посмотреть на части внимательнее 💙
+  </div>
+
+</div>
+
+<script>
+/* =========================================================
+   ЗАДАЧИ
+   Уровень 1: целое делим на равные части, находим одну часть
+   Уровень 2: часть от целого
+   Уровень 3: целое по части
+========================================================= */
+
+const LEVEL1 = [
+  { whole: 8,  denom: 2, answer: 4 },
+  { whole: 15, denom: 3, answer: 5 },
+  { whole: 12, denom: 4, answer: 3 },
+  { whole: 20, denom: 5, answer: 4 }
+];
+
+const LEVEL2 = [
+  { whole: 10, num: 1, denom: 2, answer: 5 },
+  { whole: 12, num: 1, denom: 3, answer: 4 },
+  { whole: 15, num: 2, denom: 5, answer: 6 },
+  { whole: 16, num: 3, denom: 4, answer: 12 }
+];
+
+const LEVEL3 = [
+  { num: 1, denom: 2, known: 5,  answer: 10 },
+  { num: 1, denom: 4, known: 6,  answer: 24 },
+  { num: 2, denom: 3, known: 10, answer: 15 },
+  { num: 3, denom: 5, known: 12, answer: 20 }
+];
+
+let currentLevel = 1;
+let taskIndex = 0;
+let solvedThisTask = false;
+
+let stars = { 1:0, 2:0, 3:0 };
+
+try {
+  const saved = localStorage.getItem("partsStars");
+  if (saved) stars = JSON.parse(saved);
+} catch(e) {}
+
+renderStars();
+
+function saveStars(){
+  try{
+    localStorage.setItem("partsStars", JSON.stringify(stars));
+  }catch(e){}
+}
+
+function renderStars(){
+  for(let lv = 1; lv <= 3; lv++){
+    const el = document.getElementById("stars" + lv);
+    el.textContent = stars[lv] > 0 ? "⭐".repeat(Math.min(stars[lv], 6)) : "☆";
+  }
+}
+
+function getSet(level){
+  if(level === 1) return LEVEL1;
+  if(level === 2) return LEVEL2;
+  return LEVEL3;
+}
+
+function showScreen(id){
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+}
+
+function goMenu(){
+  showScreen("menu");
+  renderStars();
+}
+
+function startLevel(level){
+  currentLevel = level;
+  taskIndex = 0;
+  loadTask();
+  showScreen("game");
+}
+
+function currentTask(){
+  return getSet(currentLevel)[taskIndex];
+}
+
+function loadTask(){
+  const set = getSet(currentLevel);
+  const task = set[taskIndex];
+  solvedThisTask = false;
+
+  document.getElementById("taskNum").textContent = taskIndex + 1;
+  document.getElementById("taskTotal").textContent = set.length;
+
+  document.getElementById("question").textContent = questionText(task);
+  document.getElementById("caption").textContent = captionText(task);
+  document.getElementById("feedback").textContent = "";
+  document.getElementById("feedback").className = "feedback";
+  document.getElementById("hintBubble").classList.remove("show");
+  document.getElementById("answerInput").value = "";
+  document.getElementById("answerInput").disabled = false;
+  document.getElementById("nextRow").style.display = "none";
+
+  renderBar(task, false);
+}
+
+function questionText(task){
+  if(currentLevel === 1){
+    return `Целое равно ${task.whole}. Его разделили на ${task.denom} равных частей. Чему равна одна часть?`;
+  }
+
+  if(currentLevel === 2){
+    return `Найди ${task.num}/${task.denom} от числа ${task.whole}.`;
+  }
+
+  return `Известно, что ${task.num}/${task.denom} целого — это ${task.known}. Найди целое.`;
+}
+
+function captionText(task){
+  if(currentLevel === 1){
+    return `Целое: ${task.whole}`;
+  }
+
+  if(currentLevel === 2){
+    return `Целое: ${task.whole}. Выделено ${task.num} из ${task.denom} равных частей.`;
+  }
+
+  return `Жёлтые части вместе равны ${task.known}. Нужно найти всё целое.`;
+}
+
+function onePartValue(task){
+  if(currentLevel === 1){
+    return task.whole / task.denom;
+  }
+
+  if(currentLevel === 2){
+    return task.whole / task.denom;
+  }
+
+  return task.known / task.num;
+}
+
+function renderBar(task, reveal){
+  const bar = document.getElementById("bar");
+  bar.innerHTML = "";
+
+  const valueToShow = reveal ? onePartValue(task) : "?";
+
+  for(let i = 0; i < task.denom; i++){
+    const seg = document.createElement("div");
+    seg.className = "segment";
+
+    if(currentLevel === 1 && i === 0){
+      seg.classList.add("hl");
+    }
+
+    if(currentLevel === 2 && i < task.num){
+      seg.classList.add("hl");
+    }
+
+    if(currentLevel === 3 && i < task.num){
+      seg.classList.add("hl-known");
+    }
+
+    seg.textContent = reveal ? valueToShow : "?";
+    bar.appendChild(seg);
+  }
+}
+
+function showHint(){
+  const task = currentTask();
+  const hint = document.getElementById("hintBubble");
+
+  let text = "";
+
+  if(currentLevel === 1){
+    text = `Если целое ${task.whole} разложить поровну на ${task.denom} частей, то одна часть получится так: ${task.whole} ÷ ${task.denom}.`;
+  }
+
+  if(currentLevel === 2){
+    text = `Сначала найди одну часть: ${task.whole} ÷ ${task.denom}. Потом возьми таких частей ${task.num}, то есть умножь результат на ${task.num}.`;
+  }
+
+  if(currentLevel === 3){
+    text = `Известно, что ${task.num} таких частей вместе равны ${task.known}. Сначала найди одну часть: ${task.known} ÷ ${task.num}. Потом собери целое из ${task.denom} частей: умножь результат на ${task.denom}.`;
+  }
+
+  hint.textContent = "💡 " + text;
+  hint.classList.add("show");
+}
+
+function checkAnswer(){
+  const task = currentTask();
+  const input = document.getElementById("answerInput");
+  const val = Number(input.value);
+  const fb = document.getElementById("feedback");
+
+  if(val === task.answer){
+    fb.className = "feedback ok";
+    fb.textContent = "🌟 Отлично! Ты нашёл(а) ответ и сохранил(а) равновесие частей.";
+
+    renderBar(task, true);
+
+    if(!solvedThisTask){
+      solvedThisTask = true;
+      stars[currentLevel]++;
+      saveStars();
+    }
+
+    input.disabled = true;
+    document.getElementById("nextRow").style.display = "flex";
+  } else {
+    fb.className = "feedback err";
+    fb.textContent = "Почти! Посмотри на полоску и попробуй ещё раз. Подсказка может помочь 💙";
+    input.select();
+  }
+}
+
+function nextTask(){
+  const set = getSet(currentLevel);
+  taskIndex++;
+
+  if(taskIndex >= set.length){
+    goMenu();
+    return;
+  }
+
+  loadTask();
+}
+</script>
+</body>
+</html>
