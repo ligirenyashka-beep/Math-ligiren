@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Пингли Studio — Создание вирусных математических каруселей</title>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Manrope:wght@400;600;700;800&family=Unbounded:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --white:#FFFFFF;
+  --beige:#F3E7D3;
+  --brown:#5A3A29;
+  --orange:#E8590C;
+  --burgundy:#6E1423;
+  --black:#1A1411;
+  --paper:#efe6d5;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Manrope,sans-serif;background:#0f0d0b;color:var(--black);display:flex;height:100vh;overflow:hidden}
+.sidebar{width:420px;background:#fff;border-right:2px solid #e9ddd0;display:flex;flex-direction:column;overflow:hidden}
+.header{padding:18px 20px;background:var(--burgundy);color:#fff}
+.header h1{font-family:Unbounded,sans-serif;font-size:15px;letter-spacing:.06em;text-transform:uppercase}
+.header p{font-size:11px;opacity:.85;margin-top:4px;letter-spacing:.02em}
+.tabs{display:flex;border-bottom:1px solid #eee}
+.tab{flex:1;padding:12px 8px;text-align:center;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;background:#faf6f0;color:var(--brown);border:none}
+.tab.active{background:var(--orange);color:#fff}
+.panel{flex:1;overflow:auto;padding:16px 16px 24px;background:#fdfaf4}
+.panel-section{margin-bottom:18px;background:#fff;border:1.5px solid #e9ddd0;border-radius:16px;padding:14px}
+.panel-section h3{font-family:Unbounded,sans-serif;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--burgundy);margin-bottom:10px}
+.field{margin-bottom:10px}
+.field label{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#7a6a5c;display:block;margin-bottom:6px}
+.field input,.field textarea,.field select{width:100%;border:1.5px solid #e9ddd0;border-radius:10px;padding:10px 12px;font-family:Manrope,sans-serif;font-size:14px;outline:none;background:#fff}
+.field textarea{resize:vertical;min-height:70px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn{border:none;border-radius:12px;padding:12px 14px;font-family:Unbounded,sans-serif;font-weight:800;font-size:12px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;transition:.15s}
+.btn-primary{background:var(--burgundy);color:#fff}
+.btn-primary:hover{background:#4a1018}
+.btn-orange{background:var(--orange);color:#fff}
+.btn-ghost{background:#fff;border:1.5px solid #e9ddd0;color:var(--brown)}
+.btn:active{transform:translateY(1px)}
+.small{font-size:11px;color:#8a7a6c;line-height:1.5}
+.preset-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.preset{border:1.5px solid #e9ddd0;border-radius:12px;padding:10px;background:#fff;cursor:pointer;text-align:left}
+.preset b{font-size:12px;display:block;color:var(--burgundy)}
+.preset span{font-size:11px;color:#7a6a5c}
+.preset.active{border-color:var(--orange);background:#fff6f0}
+.canvas-area{flex:1;background:#1a1714;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:18px;overflow:auto;position:relative}
+.canvas-wrap{position:relative;box-shadow:0 20px 60px rgba(0,0,0,.45);border-radius:10px;overflow:hidden;background:#fff}
+canvas{display:block;background:#fff}
+.controls{margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.tag{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;background:#fff;border-radius:999px;padding:6px 10px;color:var(--brown);border:1px solid #e9ddd0}
+.range{width:100%}
+.color-row{display:flex;gap:8px;flex-wrap:wrap}
+.color-btn{width:34px;height:34px;border-radius:999px;border:2.5px solid #fff;box-shadow:0 0 0 1.5px #e9ddd0;cursor:pointer}
+.color-btn.active{box-shadow:0 0 0 2.5px var(--burgundy)}
+.kbd{font-family:monospace;background:#1a1411;color:#f3e7d3;padding:2px 6px;border-radius:6px;font-size:11px}
+.json-preview{max-height:220px;overflow:auto;background:#1a1411;color:#f3e7d3;padding:12px;border-radius:12px;font-family:monospace;font-size:11px;line-height:1.5;white-space:pre-wrap}
+</style>
+</head>
+<body>
+<div class="sidebar">
+  <div class="header">
+    <h1>★ ПИНГЛИ STUDIO</h1>
+    <p>Вирусные математические карусели • 1080×1350 • Canva-ready</p>
+  </div>
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab(0)">Контент</button>
+    <button class="tab" onclick="switchTab(1)">Дизайн</button>
+    <button class="tab" onclick="switchTab(2)">Экспорт</button>
+  </div>
+  <div class="panel" id="panel0">
+    <div class="panel-section">
+      <h3>Проект</h3>
+      <div class="field"><label>Название карусели</label><input id="projTitle" value="Почему 1/2 + 1/3 ≠ 2/5"></div>
+      <div class="row2">
+        <div class="field"><label>Слайдов</label><select id="slideCount" onchange="rebuildSlides()"><option>8</option><option selected>10</option><option>7</option><option>9</option></select></div>
+        <div class="field"><label>Герой</label><select id="heroMood"><option>удивлён</option><option>хитрый</option><option>радостный</option><option>скептик</option></select></div>
+      </div>
+      <div class="small">Все слайды — отдельные PNG 1080×1350. Сборка в Canva по схеме ниже.</div>
+    </div>
+
+    <div class="panel-section">
+      <h3>Текущий слайд <span id="curSlideLabel" class="kbd">1/10</span></h3>
+      <div class="field"><label>Функция слайда</label><select id="slideFunc" onchange="updateCurrent()">
+        <option>ХУК — конфликт</option>
+        <option>Интуиция — как думает 90%</option>
+        <option>Противоречие — ловим на ошибке</option>
+        <option>Визуальный эксперимент</option>
+        <option>Объяснение — размер куска</option>
+        <option>Кульминация — формула</option>
+        <option>Доказательство — НОК</option>
+        <option>Проверка — тест себя</option>
+        <option>Вывод — что запомнить</option>
+        <option>Финал — CTA + @tononame</option>
+      </select></div>
+      <div class="field"><label>Заголовок (Unbounded)</label><input id="titleInput" oninput="updateCurrent()"></div>
+      <div class="field"><label>Подзаголовок / объяснение (Manrope, до 25 слов)</label><textarea id="subtitleInput" oninput="updateCurrent()"></textarea></div>
+      <div class="row2">
+        <div class="field"><label>Рукописная реплика (Caveat)</label><input id="handInput" oninput="updateCurrent()" placeholder="Серьёзно?!"></div>
+        <div class="field"><label>Большая цифра/слово</label><input id="bigWordInput" oninput="updateCurrent()" placeholder="2/5 ≠"></div>
+      </div>
+      <div class="field"><label>Формула (центр)</label><input id="formulaInput" oninput="updateCurrent()" placeholder="1/2 + 1/3 = 5/6"></div>
+    </div>
+
+    <div class="panel-section">
+      <h3>Пресеты слайдов</h3>
+      <div class="preset-grid">
+        <button class="preset active" onclick="applyPreset(0)"><b>🔥 Хук</b><span>Конфликт + персонаж</span></button>
+        <button class="preset" onclick="applyPreset(1)"><b>🧪 Эксперимент</b><span>Пиццы + нарезка</span></button>
+        <button class="preset" onclick="applyPreset(2)"><b>💥 Кульминация</b><span>Бордовый + формула</span></button>
+        <button class="preset" onclick="applyPreset(3)"><b>✅ Вывод</b><span>Чек-лист + CTA</span></button>
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <h3>Навигация</h3>
+      <div class="controls" style="justify-content:stretch; margin:0">
+        <button class="btn btn-ghost" style="flex:1" onclick="prevSlide()">← Назад</button>
+        <button class="btn btn-orange" style="flex:1" onclick="nextSlide()">Далее →</button>
+      </div>
+      <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap" id="dots"></div>
+    </div>
+  </div>
+
+  <div class="panel" id="panel1" style="display:none">
+    <div class="panel-section">
+      <h3>Фон слайда</h3>
+      <div class="color-row" id="bgColors"></div>
+      <div class="field" style="margin-top:12px"><label>Текстура бумаги</label><input type="range" class="range" id="paperRange" min="0" max="100" value="18" oninput="updateCurrent()"><div class="small">Плотность: <span id="paperVal">18%</span></div></div>
+      <div class="field"><label>Акцент-фон (для кульминации)</label><select id="accentBg" onchange="updateCurrent()"><option value="beige">Бежевый #F3E7D3</option><option value="burgundy">Бордовый #6E1423</option><option value="orange">Оранжевый #E8590C</option><option value="white">Белый #FFFFFF</option><option value="brown">Коричневый #5A3A29</option></select></div>
+    </div>
+    <div class="panel-section">
+      <h3>Композиция</h3>
+      <div class="row2">
+        <div class="field"><label>Поза героя</label><select id="pose" onchange="updateCurrent()"><option>стоит, руки в боки</option><option>показывает на формулу</option><option>держит пиццы</option><option>падает от удивления</option><option>смотрит в лупу</option></select></div>
+        <div class="field"><label>Эмоция</label><select id="emotion" onchange="updateCurrent()"><option>😲 вау</option><option>🤔 хмм</option><option>😤 спор</option><option>😍 эврика</option><option>😅 упс</option></select></div>
+      </div>
+      <div class="field"><label>Схема (асимметрия / диагональ)</label><select id="layout" onchange="updateCurrent()"><option>Заголовок сверху + персонаж слева + формула центр</option><option>Диагональ: герой + стрелка → формула</option><option>Крупный заголовок, персонаж внизу</option><option>Два пиццы-круга: слева 1/2, справа 1/3</option></select></div>
+      <div class="field"><label>Размер заголовка</label><input type="range" class="range" id="titleSize" min="48" max="96" value="72" oninput="updateCurrent()"></div>
+    </div>
+    <div class="panel-section">
+      <h3>Промпт для генерации иллюстрации</h3>
+      <div class="small" style="margin-bottom:8px">Базовый промпт + описание сцены. Копируй в Midjourney / SD / Firefly. Текст НЕ генерь — добавим в Canva.</div>
+      <div id="promptBox" class="json-preview" style="background:#fdf6e8;color:#5a3a29;border:1px solid #e9ddd0"></div>
+      <button class="btn btn-ghost" style="width:100%;margin-top:10px" onclick="copyPrompt()">Копировать промпт</button>
+    </div>
+  </div>
+
+  <div class="panel" id="panel2" style="display:none">
+    <div class="panel-section">
+      <h3>Экспорт PNG 1080×1350</h3>
+      <button class="btn btn-primary" style="width:100%" onclick="exportCurrent()">⬇ Скачать текущий слайд PNG</button>
+      <button class="btn btn-orange" style="width:100%;margin-top:8px" onclick="exportAll()">⬇ Скачать всю карусель (ZIP)</button>
+      <div class="small" style="margin-top:10px">Каждый слайд — отдельный файл <span class="kbd">01.png … 10.png</span> для загрузки в Instagram как карусель. Canva-схема ниже.</div>
+    </div>
+    <div class="panel-section">
+      <h3>Схема сборки в Canva</h3>
+      <div class="small">
+        1. Создай дизайн <span class="kbd">1080×1350</span> (Пользовательский размер).<br>
+        2. Загрузи PNG-фоны из экспорта (или используй наш шаблон).<br>
+        3. Шрифты: <b>Unbounded Bold</b> (заголовки 72-84px), <b>Manrope 600</b> (текст 36-42px), <b>Caveat 600</b> (реплики 38px).<br>
+        4. Поля 72px, номер слайда 1/n внизу 11px.<br>
+        5. Формулы набирай как текст Unbounded в рамке #FFFFFF с тенью.<br>
+        6. Экспорт: PNG → загрузка в Instagram каруселью.<br><br>
+        <b>Ссылка-шаблон Canva (дублируй):</b><br>
+        <a href="#" style="color:var(--orange)">canva.com/template/pingli-carousel-1080x1350</a> — замени на свой дубликат после импорта.<br>
+      </div>
+    </div>
+    <div class="panel-section">
+      <h3>JSON пакета (для автоматизации)</h3>
+      <div id="jsonBox" class="json-preview"></div>
+      <button class="btn btn-ghost" style="width:100%;margin-top:10px" onclick="copyJSON()">Копировать JSON</button>
+    </div>
+  </div>
+</div>
+
+<div class="canvas-area">
+  <div style="display:flex;gap:10px;margin-bottom:12px;align-items:center">
+    <span class="tag" id="sizeTag">1080 × 1350 • 4:5 • 72dpi</span>
+    <span class="tag" style="background:var(--beige)">Stickman + журнальная типографика</span>
+  </div>
+  <div class="canvas-wrap">
+    <canvas id="c" width="1080" height="1350"></canvas>
+  </div>
+  <div class="controls">
+    <button class="btn btn-ghost" onclick="prevSlide()">←</button>
+    <span class="tag" id="slideTag">Слайд 1 / 10</span>
+    <button class="btn btn-ghost" onclick="nextSlide()">→</button>
+    <button class="btn btn-primary" onclick="exportCurrent()">Скачать PNG</button>
+  </div>
+</div>
+
+<script>
+const W=1080,H=1350;
+const colors={
+  white:"#FFFFFF",beige:"#F3E7D3",brown:"#5A3A29",orange:"#E8590C",burgundy:"#6E1423",black:"#1A1411"
+};
+const bgOptions=[
+  {id:"white",c:"#FFFFFF",label:"Белый"},
+  {id:"beige",c:"#F3E7D3",label:"Бежевый"},
+  {id:"burgundy",c:"#6E1423",label:"Бордовый"},
+  {id:"orange",c:"#E8590C",label:"Оранжевый"},
+  {id:"brown",c:"#5A3A29",label:"Коричневый"},
+  {id:"paper",c:"#efe6d5",label:"Бумага"},
+];
+
+let slides=[];
+let cur=0;
+
+function makeDefaultSlides(n=10){
+  const defaults=[
+    {func:"ХУК — конфликт",title:"1/2 + 1/3 = 2/5 ?",subtitle:"Так складывает 90% людей. И ошибается.",hand:"Стоп. Что?!",bigWord:"2/5 ✕",formula:"",bg:"beige",titleSize:78},
+    {func:"Интуиция — как думает 90%",title:"Мозг любит простое",subtitle:"Сложить верх и низ отдельно — кажется логично. Но дроби — это не два числа, а один размер куска.",hand:"Я так делал...",bigWord:"1/2 + 1/3",formula:"",bg:"white",titleSize:64},
+    {func:"Противоречие — ловим",title:"Проверяем на пицце",subtitle:"Разрежь пиццу пополам и на три части. 1/2 + 1/3 точно не 2/5 — куски разного размера!",hand:"Где подвох?",bigWord:"🍕",formula:"",bg:"beige",titleSize:68},
+    {func:"Визуальный эксперимент",title:"Разный размер — нельзя складывать",subtitle:"Представь: половинка арбуза + треть арбуза. Верх складывать нельзя, пока куски разные.",hand:"Ага!",bigWord:"",formula:"1/2 ≠ 1/3",bg:"white",titleSize:62},
+    {func:"Объяснение — размер куска",title:"Знаменатель = размер куска",subtitle:"Чем больше знаменатель, тем мельче куски. Чтобы сложить — нужно нарезать одинаково.",hand:"Размер matters",bigWord:"НОК",formula:"",bg:"beige",titleSize:66},
+    {func:"Кульминация — формула",title:"Фишка: общий знаменатель",subtitle:"Находим НОК(2,3)=6. Переводим: 1/2=3/6, 1/3=2/6",hand:"Вот оно!",bigWord:"6",formula:"3/6 + 2/6 = 5/6",bg:"burgundy",titleSize:70},
+    {func:"Доказательство — НОК",title:"Почему именно 6?",subtitle:"6 — самое маленькое число, которое делится и на 2, и на 3. Меньше нельзя — куски не совпадут.",hand:"Экономим!",bigWord:"НОК=6",formula:"6 ÷ 2 = 3  •  6 ÷ 3 = 2",bg:"orange",titleSize:64},
+    {func:"Проверка — тест себя",title:"А теперь ты:",subtitle:"Сколько будет 1/4 + 1/6 ? Подсказка: НОК(4,6)=12",hand:"Попробуй!",bigWord:"?",formula:"1/4 = 3/12  •  1/6 = 2/12",bg:"white",titleSize:66},
+    {func:"Вывод — что запомнить",title:"Запомни 3 шага",subtitle:"1) Найди общий знаменатель (НОК) 2) Переведи дроби 3) Сложи числители",hand:"Сохрани!",bigWord:"3 шага",formula:"числители +  / знаменатель тот же",bg:"beige",titleSize:68},
+    {func:"Финал — CTA + @tononame",title:"Математика — это про пиццу",subtitle:"Отправь другу, который всё ещё складывает 1/2+1/3=2/5. Пусть удивится.",hand:"Поделись!",bigWord:"",formula:"@tononame  •  Пингли Академия",bg:"burgundy",titleSize:60},
+  ];
+  slides=defaults.slice(0,n).map((s,i)=>({...s,idx:i}));
+}
+makeDefaultSlides(10);
+
+function init(){
+  const wrap=document.getElementById('bgColors');
+  bgOptions.forEach(o=>{
+    const b=document.createElement('button');
+    b.className='color-btn'; b.style.background=o.c; b.title=o.label;
+    b.onclick=()=>{ slides[cur].bg=o.id; render(); syncUI(); };
+    wrap.appendChild(b);
+  });
+  buildDots();
+  syncUI();
+  render();
+}
+function buildDots(){
+  const d=document.getElementById('dots');
+  d.innerHTML='';
+  slides.forEach((s,i)=>{
+    const btn=document.createElement('button');
+    btn.textContent=i+1; btn.style.cssText='width:28px;height:28px;border-radius:999px;border:1.5px solid #e9ddd0;background:'+(i===cur?'#6E1423;color:#fff':'#fff')+';font-weight:800;font-size:11px;cursor:pointer';
+    btn.onclick=()=>{cur=i; syncUI(); render();};
+    d.appendChild(btn);
+  });
+}
+function syncUI(){
+  const s=slides[cur];
+  document.getElementById('curSlideLabel').textContent=(cur+1)+'/'+slides.length;
+  document.getElementById('slideTag').textContent='Слайд '+(cur+1)+' / '+slides.length;
+  document.getElementById('slideFunc').value=s.func;
+  document.getElementById('titleInput').value=s.title;
+  document.getElementById('subtitleInput').value=s.subtitle;
+  document.getElementById('handInput').value=s.hand;
+  document.getElementById('bigWordInput').value=s.bigWord;
+  document.getElementById('formulaInput').value=s.formula;
+  document.getElementById('accentBg').value=s.bg;
+  document.getElementById('titleSize').value=s.titleSize||72;
+  document.getElementById('projTitle').value=document.getElementById('projTitle').value;
+  buildDots();
+  updatePrompt();
+  updateJSON();
+}
+function updateCurrent(){
+  const s=slides[cur];
+  s.func=document.getElementById('slideFunc').value;
+  s.title=document.getElementById('titleInput').value;
+  s.subtitle=document.getElementById('subtitleInput').value;
+  s.hand=document.getElementById('handInput').value;
+  s.bigWord=document.getElementById('bigWordInput').value;
+  s.formula=document.getElementById('formulaInput').value;
+  s.bg=document.getElementById('accentBg').value;
+  s.titleSize=parseInt(document.getElementById('titleSize').value);
+  document.getElementById('paperVal').textContent=document.getElementById('paperRange').value+'%';
+  render(); updatePrompt(); updateJSON();
+}
+function applyPreset(i){
+  document.querySelectorAll('.preset').forEach((p,idx)=>p.classList.toggle('active',idx===i));
+  const s=slides[cur];
+  if(i===0){ s.bg='beige'; s.titleSize=78; }
+  if(i===1){ s.bg='white'; s.titleSize=64; }
+  if(i===2){ s.bg='burgundy'; s.titleSize=72; }
+  if(i===3){ s.bg='beige'; s.titleSize=68; }
+  syncUI(); render();
+}
+function switchTab(n){
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',i===n));
+  document.getElementById('panel0').style.display=n===0?'block':'none';
+  document.getElementById('panel1').style.display=n===1?'block':'none';
+  document.getElementById('panel2').style.display=n===2?'block':'none';
+}
+function prevSlide(){ cur=Math.max(0,cur-1); syncUI(); render(); }
+function nextSlide(){ cur=Math.min(slides.length-1,cur+1); syncUI(); render(); }
+function rebuildSlides(){
+  const n=parseInt(document.getElementById('slideCount').value);
+  makeDefaultSlides(n); cur=0; buildDots(); syncUI(); render();
+}
+
+function updatePrompt(){
+  const s=slides[cur];
+  const base="Stickman cartoon illustration, thick black outline, flat colors, no gradients, no shadows, palette: beige #F3E7D3, brown #5A3A29, orange #E8590C, burgundy #6E1423, black, white; simple round-head stickman character with dot eyes and expressive mouth; consistent character design across the series; clean editorial composition with empty space reserved for typography; vertical 4:5.";
+  let scene="";
+  if(s.func.includes("ХУК")) scene=" Expressive stickman character standing with arms crossed, looking shocked at floating text '1/2 + 1/3 = 2/5' with a big red X mark, comic-style speech bubble, dynamic pose, minimal background";
+  else if(s.func.includes("Эксперимент")) scene=" Two pizza illustrations side by side, left pizza cut in halves (one half highlighted), right pizza cut in thirds (one third highlighted), stickman pointing, arrows showing different slice sizes, educational diagram style";
+  else if(s.func.includes("Кульминация")) scene=" Stickman scientist celebrating, large fraction '5/6' in the center as a hero object, confetti, burgundy background, triumph pose";
+  else scene=" Stickman character "+ document.getElementById('pose').value +", "+ document.getElementById('emotion').value +", minimal geometric shapes, hand-drawn arrows, editorial layout";
+  const p=base+scene;
+  document.getElementById('promptBox').textContent=p;
+}
+function updateJSON(){
+  const pkg={
+    title: document.getElementById('projTitle').value,
+    format:"1080x1350 4:5",
+    palette:["#FFFFFF","#F3E7D3","#5A3A29","#E8590C","#6E1423","#1A1411"],
+    fonts:["Unbounded","Manrope","Caveat"],
+    slides: slides.map((s,i)=>({n:i+1,func:s.func,title:s.title,subtitle:s.subtitle,hand:s.hand,bigWord:s.bigWord,formula:s.formula,bg:colors[s.bg]||s.bg}))
+  };
+  document.getElementById('jsonBox').textContent=JSON.stringify(pkg,null,2);
+}
+
+function copyPrompt(){ navigator.clipboard.writeText(document.getElementById('promptBox').textContent); alert('Промпт скопирован'); }
+function copyJSON(){ navigator.clipboard.writeText(document.getElementById('jsonBox').textContent); alert('JSON скопирован'); }
+
+// RENDER
+function drawPaper(ctx, alpha){
+  if(alpha<=0) return;
+  ctx.save(); ctx.globalAlpha=alpha/100*0.18;
+  for(let i=0;i<1800;i++){
+    const x=Math.random()*W, y=Math.random()*H, r=Math.random()*1.2;
+    ctx.fillStyle= i%2? '#5A3A29':'#E8590C';
+    ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill();
+  }
+  ctx.restore();
+  // неровные мазки
+  ctx.save(); ctx.globalAlpha=0.06; ctx.strokeStyle="#5A3A29"; ctx.lineWidth=10;
+  for(let i=0;i<3;i++){ ctx.beginPath(); ctx.moveTo(40+Math.random()*200, 200+Math.random()*900); ctx.bezierCurveTo(400,300,700,1100,1040,1200); ctx.stroke(); }
+  ctx.restore();
+}
+function roundRect(ctx,x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+
+function render(){
+  const canvas=document.getElementById('c');
+  const ctx=canvas.getContext('2d');
+  const s=slides[cur];
+  const bg=colors[s.bg] || "#F3E7D3";
+  // bg
+  ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
+  drawPaper(ctx, parseInt(document.getElementById('paperRange').value));
+
+  const isBurgundy = s.bg==='burgundy' || s.bg==='brown';
+  const textColor = isBurgundy ? "#FFFFFF" : "#1A1411";
+  const muted = isBurgundy ? "rgba(255,255,255,.78)" : "#7a6a5c";
+  const accent = "#E8590C";
+
+  // безопасные поля 72px
+  const pad=72;
+  // top bar
+  ctx.fillStyle= isBurgundy ? "rgba(255,255,255,.14)" : "rgba(26,20,17,.06)";
+  roundRect(ctx,pad,22,W-pad*2,36,18); ctx.fill();
+  ctx.fillStyle= muted;
+  ctx.font="700 11px Manrope"; ctx.letterSpacing="2px";
+  ctx.fillText("ПИНГЛИ АКАДЕМИЯ • МАТЕМАТИКА КАК ИСТОРИЯ", pad+16, 44);
+  ctx.fillStyle= accent; ctx.font="800 11px Unbounded"; ctx.fillText("● "+s.func.toUpperCase(), W-pad-220,44);
+
+  // Заголовок
+  const titleSize=s.titleSize||72;
+  ctx.fillStyle=textColor;
+  // заголовок с переносами
+  ctx.font=`900 ${titleSize}px Unbounded`;
+  let words=s.title.split(' ');
+  let lines=[], line='';
+  for(let w of words){
+    let test=line?line+' '+w:w;
+    if(ctx.measureText(test).width > W-pad*2-40 && line){
+      lines.push(line); line=w;
+    } else line=test;
+  }
+  if(line) lines.push(line);
+  // если заголовок один — крупно и диагональ
+  let y=140;
+  // диагональный эффект: чуть повернём для хука
+  if(s.func.includes("ХУК")){
+    ctx.save();
+    ctx.translate(W/2, y+titleSize*0.7);
+    ctx.rotate(-0.02);
+    ctx.textAlign="center";
+    ctx.fillStyle=textColor;
+    // тень
+    ctx.fillStyle=isBurgundy?"#1A1411": "#5A3A29";
+    ctx.globalAlpha=0.08;
+    ctx.fillText(s.title, 6,6);
+    ctx.globalAlpha=1;
+    ctx.fillStyle=textColor;
+    lines.forEach((ln,i)=>{
+      ctx.fillText(ln, 0, i* (titleSize*0.95));
+    });
+    ctx.restore();
+    y= y + lines.length*(titleSize*0.95)+18;
+  } else {
+    ctx.textAlign="left";
+    lines.forEach(ln=>{
+      ctx.fillText(ln, pad, y);
+      y+= titleSize*0.95;
+    });
+    y+=10;
+  }
+
+  // Подзаголовок (ограничим 25 слов)
+  ctx.font="600 32px Manrope";
+  ctx.fillStyle= isBurgundy ? "rgba(255,255,255,.88)" : "#3b2f27";
+  let subLines=wrapText(ctx,s.subtitle, W-pad*2-20, 32);
+  subLines.slice(0,3).forEach((ln,i)=>{
+    ctx.fillText(ln, pad, y + i*42);
+  });
+  y+= subLines.length*42 + 14;
+
+  // Большое слово/цифра (акцент)
+  if(s.bigWord){
+    ctx.save();
+    ctx.font="900 88px Unbounded";
+    ctx.fillStyle= accent;
+    // если бордовый фон — белый текст с оранжевой обводкой
+    if(isBurgundy){ ctx.fillStyle="#FFFFFF"; ctx.strokeStyle=accent; ctx.lineWidth=6; ctx.strokeText(s.bigWord, pad, y+66); }
+    ctx.fillText(s.bigWord, pad, y+66);
+    // рукописная реплика рядом
+    if(s.hand){
+      ctx.font="700 40px Caveat";
+      ctx.fillStyle= isBurgundy ? "#F3E7D3" : "#6E1423";
+      const tw=ctx.measureText(s.bigWord).width;
+      ctx.save(); ctx.translate(pad+tw+18, y+22); ctx.rotate(-0.06);
+      ctx.fillText(s.hand,0,0);
+      // стрелка каракули
+      ctx.strokeStyle=accent; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(-10,8); ctx.quadraticCurveTo(10,18, 40,6); ctx.stroke();
+      ctx.restore();
+    }
+    ctx.restore();
+    y+=88;
+  } else if(s.hand){
+    ctx.font="700 38px Caveat";
+    ctx.fillStyle= isBurgundy ? "#F3E7D3" : "#6E1423";
+    ctx.fillText(s.hand, pad, y+20);
+    y+=40;
+  }
+
+  // Центральная формула / иллюстрация-зона
+  if(s.formula){
+    // карточка формулы
+    const fh=150, fw=W-pad*2;
+    const fy= H- 420;
+    ctx.save();
+    ctx.fillStyle= isBurgundy ? "#FFFFFF" : "#FFFFFF";
+    ctx.shadowColor="rgba(0,0,0,.18)"; ctx.shadowBlur=18; ctx.shadowOffsetY=8;
+    roundRect(ctx,pad,fy,fw,fh,22); ctx.fill();
+    ctx.shadowColor="transparent";
+    // внутренняя линия
+    ctx.strokeStyle="#F3E7D3"; ctx.lineWidth=2; roundRect(ctx,pad+10,fy+10,fw-20,fh-20,16); ctx.stroke();
+    // текст формулы
+    ctx.fillStyle="#1A1411";
+    ctx.font="800 64px Unbounded";
+    ctx.textAlign="center";
+    ctx.fillText(s.formula, W/2, fy+92);
+    // подпись
+    ctx.font="700 13px Manrope"; ctx.fillStyle="#8a7a6c"; ctx.letterSpacing="1.5px";
+    ctx.fillText("СМ. ДОКАЗАТЕЛЬСТВО НИЖЕ ↓", W/2, fy+124);
+    ctx.restore();
+  } else {
+    // иллюстративная зона: пиццы / stickman схема
+    const fy=H-480;
+    drawIllustration(ctx, s, pad, fy, W-pad*2, 300, isBurgundy);
+  }
+
+  // Stickman персонаж (упрощённый, в углу если не формула)
+  if(!s.formula) drawStickman(ctx, W-220, H-260, isBurgundy);
+
+  // Номер слайда
+  ctx.fillStyle=muted; ctx.font="700 13px Manrope"; ctx.textAlign="center";
+  ctx.fillText((cur+1)+" / "+slides.length, W/2, H-28);
+
+  // Нижняя подпись
+  ctx.font="600 11px Manrope"; ctx.fillStyle=muted;
+  ctx.fillText("Сохрани • Отправь другу • @tononame", W/2, H-52);
+}
+
+function wrapText(ctx,text,maxW,sz){
+  let words=text.split(' '), lines=[], line='';
+  for(let w of words){
+    let t=line?line+' '+w:w;
+    if(ctx.measureText(t).width>maxW && line){ lines.push(line); line=w; } else line=t;
+  }
+  if(line) lines.push(line);
+  return lines;
+}
+
+function drawStickman(ctx,x,y,dark){
+  ctx.save();
+  // голова
+  ctx.fillStyle="#FFFFFF"; ctx.strokeStyle="#1A1411"; ctx.lineWidth=5;
+  ctx.beginPath(); ctx.arc(x,y,48,0,Math.PI*2); ctx.fill(); ctx.stroke();
+  // глаза
+  ctx.fillStyle="#1A1411"; ctx.beginPath(); ctx.arc(x-14,y-6,6,0,Math.PI*2); ctx.arc(x+14,y-6,6,0,Math.PI*2); ctx.fill();
+  // рот
+  ctx.strokeStyle="#1A1411"; ctx.lineWidth=4; ctx.lineCap="round";
+  ctx.beginPath(); ctx.arc(x,y+16,14,0.18*Math.PI,0.82*Math.PI); ctx.stroke();
+  // тело
+  ctx.lineWidth=5; ctx.beginPath(); ctx.moveTo(x,y+48); ctx.lineTo(x,y+110); ctx.stroke();
+  // руки
+  ctx.beginPath(); ctx.moveTo(x,y+70); ctx.lineTo(x-34,y+82); ctx.moveTo(x,y+70); ctx.lineTo(x+34,y+56); ctx.stroke();
+  // ноги
+  ctx.beginPath(); ctx.moveTo(x,y+110); ctx.lineTo(x-18,y+140); ctx.moveTo(x,y+110); ctx.lineTo(x+18,y+140); ctx.stroke();
+  // подпись эмоции
+  ctx.font="700 12px Manrope"; ctx.fillStyle=dark?"#F3E7D3":"#6E1423"; ctx.textAlign="center"; ctx.fillText("эй!", x, y+162);
+  ctx.restore();
+}
+function drawIllustration(ctx,s,x,y,w,h,dark){
+  ctx.save();
+  ctx.fillStyle= dark ? "rgba(255,255,255,.08)" : "#FFFFFF";
+  ctx.strokeStyle= dark ? "rgba(255,255,255,.18)" : "#e9ddd0";
+  ctx.lineWidth=1.5;
+  roundRect(ctx,x,y,w,h,18); ctx.fill(); ctx.stroke();
+  // контент по типу
+  if(s.func.includes("Интуиция") || s.func.includes("Визуальный")){
+    // два круга-пиццы
+    const cx1=x+w*0.28, cx2=x+w*0.72, cy=y+h*0.48, r=78;
+    [ {cx:cx1, parts:2, fill:1}, {cx:cx2, parts:3, fill:1} ].forEach(p=>{
+      ctx.fillStyle="#FFD166"; ctx.strokeStyle="#1A1411"; ctx.lineWidth=4;
+      ctx.beginPath(); ctx.arc(p.cx,cy,r,0,Math.PI*2); ctx.fill(); ctx.stroke();
+      // деления
+      for(let i=0;i<p.parts;i++){
+        ctx.beginPath(); ctx.moveTo(p.cx,cy); ctx.lineTo(p.cx+ r*Math.cos(-Math.PI/2 + i*2*Math.PI/p.parts), cy+ r*Math.sin(-Math.PI/2 + i*2*Math.PI/p.parts)); ctx.stroke();
+      }
+      // подсветка одной доли
+      ctx.fillStyle="#E8590C"; ctx.globalAlpha=0.9;
+      ctx.beginPath(); ctx.moveTo(p.cx,cy); ctx.arc(p.cx,cy,r, -Math.PI/2, -Math.PI/2+2*Math.PI/p.parts); ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.globalAlpha=1;
+    });
+    ctx.fillStyle=dark?"#fff":"#1A1411"; ctx.font="800 15px Unbounded"; ctx.textAlign="center";
+    ctx.fillText("1/2", x+w*0.28, y+h-18); ctx.fillText("1/3", x+w*0.72, y+h-18);
+    // стрелка
+    ctx.strokeStyle="#E8590C"; ctx.lineWidth=4; ctx.beginPath(); ctx.moveTo(x+w*0.5-30, y+24); ctx.lineTo(x+w*0.5+30, y+24); ctx.stroke();
+    ctx.fillStyle="#E8590C"; ctx.font="900 12px Unbounded"; ctx.fillText("РАЗНЫЕ КУСКИ!", x+w*0.5, y+16);
+  } else if(s.func.includes("Противоречие")){
+    // 2/5 перечеркнуто
+    ctx.font="900 72px Unbounded"; ctx.fillStyle="#E8590C"; ctx.textAlign="center";
+    ctx.fillText("2/5", x+w*0.5, y+h*0.55);
+    ctx.strokeStyle="#6E1423"; ctx.lineWidth=8; ctx.beginPath(); ctx.moveTo(x+w*0.5-70, y+h*0.5-18); ctx.lineTo(x+w*0.5+70, y+h*0.5+18); ctx.stroke();
+    ctx.font="600 14px Manrope"; ctx.fillStyle="#5A3A29"; ctx.fillText("Почему мозг так думает? Листай →", x+w*0.5, y+h-18);
+  } else {
+    // схематичные блоки
+    ctx.fillStyle= dark?"rgba(255,255,255,.12)":"#F3E7D3";
+    roundRect(ctx,x+18,y+22,w*0.28, h-44,12); ctx.fill();
+    roundRect(ctx,x+w*0.36,y+22,w*0.28,h-44,12); ctx.fill();
+    roundRect(ctx,x+w*0.68,y+22,w*0.28-18,h-44,12); ctx.fill();
+    ctx.fillStyle=dark?"#fff":"#5A3A29"; ctx.font="700 12px Manrope"; ctx.textAlign="center";
+    ctx.fillText("ШАГ 1", x+w*0.17, y+48); ctx.fillText("ШАГ 2", x+w*0.50, y+48); ctx.fillText("ШАГ 3", x+w*0.84, y+48);
+  }
+  ctx.restore();
+}
+
+function exportCurrent(){
+  const canvas=document.getElementById('c');
+  const a=document.createElement('a');
+  a.download=`slide-${String(cur+1).padStart(2,'0')}-${slides[cur].title.replace(/[^a-z0-9а-я]/gi,'_').slice(0,20)}.png`;
+  a.href=canvas.toDataURL('image/png'); a.click();
+}
+async function exportAll(){
+  // простой: скачиваем по очереди с задержкой
+  for(let i=0;i<slides.length;i++){ cur=i; syncUI(); render(); await new Promise(r=>setTimeout(r,120)); exportCurrent(); await new Promise(r=>setTimeout(r,300)); }
+  alert('Скачаны все слайды. Загрузи их в Instagram каруселью 1→'+slides.length);
+}
+
+init();
+</script>
+</body>
+</html>
