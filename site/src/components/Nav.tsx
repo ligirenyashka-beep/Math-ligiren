@@ -6,6 +6,7 @@ import { useState } from "react";
 
 const LINKS = [
   { href: "/", label: "Главная", icon: "🏠" },
+  { href: "/course", label: "Онлайн-курс", icon: "🎓" },
   { href: "/grades", label: "Курс 1–11", icon: "🗺️" },
   { href: "/learn", label: "Обучение", icon: "📚" },
   { href: "/theory", label: "Теория", icon: "📖" },

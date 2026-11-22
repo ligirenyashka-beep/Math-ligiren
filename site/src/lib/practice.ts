@@ -335,6 +335,165 @@ export function generateProblem(spec: PracticeSpec, seed: number): GeneratedProb
         explanation: `Каждые сутки +1 м, но в последний день +3 сразу. Ответ: ${answer} дн.`,
       };
     }
+    case "decimal": {
+      const a = r.int(2, 9);
+      const b = r.int(2, 9);
+      const op = r.pick(["+", "−"]);
+      const ans = op === "+" ? a + b : a - b;
+      return {
+        id,
+        prompt: `${a},5 ${op} ${b},5 = ?`,
+        options: makeOptions(ans, r, 3),
+        answer: String(ans),
+        explanation: `Складываем/вычитаем по разрядам: ${a},5 ${op} ${b},5 = ${ans}.`,
+      };
+    }
+    case "proportion": {
+      const k = r.int(2, 6);
+      const x = r.int(2, 9);
+      const answer = k * x;
+      return {
+        id,
+        prompt: `Реши пропорцию: 3 / ${x} = ${3 * k} / ?`,
+        options: makeOptions(answer, r, 4),
+        answer: String(answer),
+        explanation: `Основное свойство: 3 · ? = ${x} · ${3 * k} → ? = ${answer}.`,
+      };
+    }
+    case "inequality": {
+      const a = r.int(2, 9);
+      const x = r.int(2, 9);
+      const b = a * x;
+      return {
+        id,
+        prompt: `Реши неравенство: ${a}x > ${b}. Выбери верный ответ.`,
+        options: shuffle([`x > ${x}`, `x < ${x}`, `x ≥ ${x}`, `x ≤ ${x}`], r.next),
+        answer: `x > ${x}`,
+        explanation: `Делим на ${a}: x > ${b} ÷ ${a} = ${x}.`,
+      };
+    }
+    case "progression": {
+      const a1 = r.int(1, 5);
+      const d = r.int(2, 5);
+      const n = r.int(4, 7);
+      const answer = a1 + (n - 1) * d;
+      return {
+        id,
+        prompt: `Арифметическая прогрессия: a₁ = ${a1}, d = ${d}. Найди a${n}.`,
+        options: makeOptions(answer, r, 4),
+        answer: String(answer),
+        explanation: `aₙ = a₁ + (n−1)d = ${a1} + ${n - 1}·${d} = ${answer}.`,
+      };
+    }
+    case "logarithm": {
+      const base = r.pick([2, 3, 10]);
+      const exp = r.int(2, 4);
+      const val = base ** exp;
+      return {
+        id,
+        prompt: `Вычисли log${base}(${val})`,
+        options: makeOptions(exp, r, 2),
+        answer: String(exp),
+        explanation: `${base}^${exp} = ${val}, значит log${base}(${val}) = ${exp}.`,
+      };
+    }
+    case "probability": {
+      const n = r.int(4, 10);
+      const m = r.int(1, n - 1);
+      const answer = `${m}/${n}`;
+      return {
+        id,
+        prompt: `В урне ${n} шаров, из них ${m} красных. Какова вероятность вытащить красный?`,
+        options: shuffle([answer, `${n - m}/${n}`, `${m}/${n + 1}`, `${m + 1}/${n}`], r.next),
+        answer,
+        explanation: `P = m/n = ${m}/${n}.`,
+      };
+    }
+    case "measurement": {
+      const cm = r.pick([10, 20, 30, 50, 100, 200]);
+      const answer = cm / 10;
+      return {
+        id,
+        prompt: `${cm} см = ? дм`,
+        options: makeOptions(answer, r, 3),
+        answer: String(answer),
+        explanation: `1 дм = 10 см, значит ${cm} ÷ 10 = ${answer} дм.`,
+      };
+    }
+    case "logic": {
+      const n = r.int(3, 8);
+      const answer = n * 2;
+      return {
+        id,
+        prompt: `У каждого из ${n} котят по 2 ушка. Сколько ушек у всех котят?`,
+        options: makeOptions(answer, r, 3),
+        answer: String(answer),
+        explanation: `${n} × 2 = ${answer}.`,
+      };
+    }
+    case "function-value": {
+      const a = r.int(1, 4);
+      const b = r.int(1, 5);
+      const x = r.int(1, 5);
+      const answer = a * x + b;
+      return {
+        id,
+        prompt: `Найди f(${x}), если f(x) = ${a}x + ${b}`,
+        options: makeOptions(answer, r, 3),
+        answer: String(answer),
+        explanation: `f(${x}) = ${a}·${x} + ${b} = ${answer}.`,
+      };
+    }
+    case "system": {
+      const x = r.int(1, 6);
+      const y = r.int(1, 6);
+      const s = x + y;
+      const d = x - y;
+      return {
+        id,
+        prompt: `Реши систему: x + y = ${s}, x − y = ${d}. Найди x.`,
+        options: makeOptions(x, r, 2),
+        answer: String(x),
+        explanation: `Складываем: 2x = ${s + d} → x = ${x}.`,
+      };
+    }
+    case "geometry-angle": {
+      const a = r.int(20, 70);
+      const b = 180 - a - r.int(20, 60);
+      const c = 180 - a - b;
+      return {
+        id,
+        prompt: `Два угла треугольника ${a}° и ${b}°. Найди третий.`,
+        visual: { kind: "triangle", data: [a, b] },
+        options: makeOptions(c, r, 8),
+        answer: String(c),
+        explanation: `Сумма углов 180°: 180 − ${a} − ${b} = ${c}°.`,
+      };
+    }
+    case "speed": {
+      const v = r.pick([40, 50, 60, 70, 80]);
+      const t = r.int(2, 4);
+      const answer = v * t;
+      return {
+        id,
+        prompt: `Автомобиль едет со скоростью ${v} км/ч ${t} ч. Какое расстояние проедет?`,
+        options: makeOptions(answer, r, 20),
+        answer: String(answer),
+        explanation: `S = v·t = ${v}·${t} = ${answer} км.`,
+      };
+    }
+    case "divisibility": {
+      const d = r.pick([2, 3, 5, 9]);
+      const k = r.int(3, 15);
+      const n = d * k;
+      return {
+        id,
+        prompt: `Делится ли ${n} на ${d}?`,
+        options: shuffle(["Да", "Нет"], r.next),
+        answer: "Да",
+        explanation: `${n} = ${d} × ${k}, значит делится.`,
+      };
+    }
     default: {
       const a = r.int(1, 10);
       const b = r.int(1, 10);

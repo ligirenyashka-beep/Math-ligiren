@@ -80,7 +80,20 @@ export type PracticeKind =
   | "trigonometry"
   | "derivative"
   | "integral"
-  | "olympiad";
+  | "olympiad"
+  | "decimal"
+  | "proportion"
+  | "inequality"
+  | "progression"
+  | "logarithm"
+  | "probability"
+  | "measurement"
+  | "logic"
+  | "function-value"
+  | "system"
+  | "geometry-angle"
+  | "speed"
+  | "divisibility";
 
 export interface PracticeSpec {
   kind: PracticeKind;
